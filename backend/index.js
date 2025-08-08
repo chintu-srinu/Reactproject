@@ -58,7 +58,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: "http://localhost:5173", // your frontend URL
+  origin: "https://reactproject-ten-kappa.vercel.app", // your frontend URL
   credentials: true,               // allow cookies/auth headers
 };
 
