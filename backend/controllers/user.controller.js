@@ -66,6 +66,7 @@ export const register = async (req, res) => {
 };
 
 
+
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -73,7 +74,7 @@ export const login = async (req, res) => {
     if (!email || !password || !role) {
       return res.status(400).json({
         message: "All fields are required",
-        success: false
+        success: false,
       });
     }
 
@@ -81,7 +82,7 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         message: "Invalid credentials",
-        success: false
+        success: false,
       });
     }
 
@@ -89,14 +90,14 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({
         message: "Invalid credentials",
-        success: false
+        success: false,
       });
     }
 
     if (user.role !== role) {
       return res.status(400).json({
         message: "Role mismatch. Please check your selected role.",
-        success: false
+        success: false,
       });
     }
 
@@ -104,16 +105,19 @@ export const login = async (req, res) => {
       expiresIn: "1d",
     });
 
+    // Send token in HTTP-only cookie and in JSON response at top-level
     return res
       .status(200)
       .cookie("token", token, {
         httpOnly: true,
-        maxAge: 86400000,
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
         sameSite: "strict",
+        secure: process.env.NODE_ENV === 'production', // use secure cookie in production only
       })
       .json({
         message: `Welcome back ${user.fullname}`,
         success: true,
+        usertoken:token, 
         user: {
           _id: user._id,
           fullname: user.fullname,
@@ -121,17 +125,106 @@ export const login = async (req, res) => {
           phoneNumber: user.phoneNumber,
           role: user.role,
           profile: user.profile,
-          usertoken:token
-        }
+        },
       });
   } catch (error) {
-    console.log("Login Error:", error);
+    console.error("Login Error:", error);
     return res.status(500).json({
       message: "Internal server error",
-      success: false
+      success: false,
     });
   }
 };
+
+
+// export const login = async (req, res) => {
+//   try {
+//     const { email, password, role } = req.body;
+
+//     if (!email || !password || !role) {
+//       return res.status(400).json({
+//         message: "All fields are required",
+//         success: false
+//       });
+//     }
+
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({
+//         message: "Invalid credentials",
+//         success: false
+//       });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(400).json({
+//         message: "Invalid credentials",
+//         success: false
+//       });
+//     }
+
+//     if (user.role !== role) {
+//       return res.status(400).json({
+//         message: "Role mismatch. Please check your selected role.",
+//         success: false
+//       });
+//     }
+
+//     const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+//       expiresIn: "1d",
+//     });
+
+//     // return res
+//     //   .status(200)
+//     //   .cookie("token", token, {
+//     //     httpOnly: true,
+//     //     maxAge: 86400000,
+//     //     sameSite: "strict",
+//     //   })
+//     //   .json({
+//     //     message: `Welcome back ${user.fullname}`,
+//     //     success: true,
+//     //     user: {
+//     //       _id: user._id,
+//     //       fullname: user.fullname,
+//     //       email: user.email,
+//     //       phoneNumber: user.phoneNumber,
+//     //       role: user.role,
+//     //       profile: user.profile,
+//     //       usertoken:token
+//     //     }
+//     //   });
+//     return res
+//   .status(200)
+//   .cookie("token", token, {
+//     httpOnly: true,
+//     maxAge: 86400000,
+//     sameSite: "strict",
+//     // secure: process.env.NODE_ENV === "production",
+//   })
+//   .json({
+//     message: `Welcome back ${user.fullname}`,
+//     success: true,
+//     token, // ✅ send token in body
+//     user: {
+//       _id: user._id,
+//       fullname: user.fullname,
+//       email: user.email,
+//       phoneNumber: user.phoneNumber,
+//       role: user.role,
+//       profile: user.profile,
+//     },
+//   });
+
+//   } catch (error) {
+//     console.log("Login Error:", error);
+//     return res.status(500).json({
+//       message: "Internal server error",
+//       success: false
+//     });
+//   }
+// };
 
 export const logout = async (req, res) => {
     try {
