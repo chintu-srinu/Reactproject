@@ -223,8 +223,6 @@ const Login = () => {
         // const token = res.data.token;
         const token = res.data.token || res.data.usertoken || res.data.user?.usertoken;
 
-        console.log("Token received from backend:", token);
-
         if (!token) {
           toast.error('No token received from server');
           return;
